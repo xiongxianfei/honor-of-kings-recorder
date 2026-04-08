@@ -18,6 +18,7 @@ import androidx.navigation.compose.rememberNavController
 import com.xiongxianfei.honorkingsrecorder.ui.screens.history.HistoryScreen
 import com.xiongxianfei.honorkingsrecorder.ui.screens.home.HomeScreen
 import com.xiongxianfei.honorkingsrecorder.ui.screens.record.RecordScreen
+import com.xiongxianfei.honorkingsrecorder.ui.screens.review.VideoReviewScreen
 import com.xiongxianfei.honorkingsrecorder.ui.screens.stats.StatsScreen
 
 @Composable
@@ -57,6 +58,7 @@ fun AppNavHost() {
             composable(Screen.Record.route) { RecordScreen() }
             composable(Screen.History.route) { HistoryScreen() }
             composable(Screen.Stats.route) { StatsScreen() }
+            composable(Screen.Review.route) { VideoReviewScreen() }
         }
     }
 }
