@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Icon for 王者复盘
+  Design: gold three-tine crown (王者) above rising bar-chart bars (复盘/review)
+  on a deep purple-indigo background (#1A1040).
+  Viewport 108×108; safe zone 18–90.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- ── Crown body (gold) ── -->
+    <!-- Three tines: side tines peak at y=46, center tine peaks at y=22
+         Valleys at y=60; crown walls from y=68 down to base at y=74 -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="
+            M22,74
+            L22,66
+            L32,44
+            L41,59
+            L54,22
+            L67,59
+            L76,44
+            L86,66
+            L86,74
+            Z" />
+
+    <!-- Crown base band (deeper gold) -->
+    <path
+        android:fillColor="#C8920A"
+        android:pathData="M18,74 H90 V82 H18 Z" />
+
+    <!-- ── Jewels at crown tine tips ── -->
+    <!-- Center jewel – ruby red diamond -->
+    <path
+        android:fillColor="#FF1744"
+        android:pathData="M54,15 L61,22 L54,29 L47,22 Z" />
+
+    <!-- Left jewel – sapphire blue diamond -->
+    <path
+        android:fillColor="#448AFF"
+        android:pathData="M32,38 L38,44 L32,50 L26,44 Z" />
+
+    <!-- Right jewel – sapphire blue diamond -->
+    <path
+        android:fillColor="#448AFF"
+        android:pathData="M76,38 L82,44 L76,50 L70,44 Z" />
+
+    <!-- ── Rising bar chart (复盘 = review/analyse) ── -->
+    <!-- Three ascending bars below the crown base -->
+    <!-- Left bar (shortest) -->
+    <path
+        android:fillColor="#FFD700"
+        android:alpha="0.9"
+        android:pathData="M24,92 H36 V88 H24 Z" />
+
+    <!-- Middle bar -->
+    <path
+        android:fillColor="#FFD700"
+        android:alpha="0.9"
+        android:pathData="M48,92 H60 V85 H48 Z" />
+
+    <!-- Right bar (tallest) -->
+    <path
+        android:fillColor="#FFD700"
+        android:alpha="0.9"
+        android:pathData="M72,92 H84 V82 H72 Z" />
+
+    <!-- Trend line connecting bar tops -->
+    <path
+        android:strokeColor="#FF6D00"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M30,88 L54,85 L78,82" />
+
+    <!-- Arrow head at trend line end -->
+    <path
+        android:fillColor="#FF6D00"
+        android:pathData="M78,82 L73,80 L75,84 Z" />
+
+</vector>
