@@ -144,10 +144,12 @@ class RecordViewModel @Inject constructor(
                     parsed.kills?.let   { updated = updated.copy(killsText   = it.toString());   hints += "击杀$it" }
                     parsed.deaths?.let  { updated = updated.copy(deathsText  = it.toString());   hints += "死亡$it" }
                     parsed.assists?.let { updated = updated.copy(assistsText = it.toString());   hints += "助攻$it" }
-                    updated.copy(
-                        imageParseHint = if (hints.isEmpty()) "未识别到数据，请手动填写"
-                                         else "已识别：${hints.joinToString(" · ")}"
-                    )
+                    val baseHint = if (hints.isEmpty()) "未识别到数据，请手动填写"
+                                   else "已识别：${hints.joinToString(" · ")}"
+                    // Append raw OCR snippet when economy couldn't be parsed (helps tuning)
+                    val debugSuffix = parsed.rawOcrHint
+                        ?.let { "\n[OCR] $it" } ?: ""
+                    updated.copy(imageParseHint = baseHint + debugSuffix)
                 }
             } catch (e: Exception) {
                 _form.update { it.copy(isParsingImage = false, imageParseHint = "识别失败：${e.message}") }
