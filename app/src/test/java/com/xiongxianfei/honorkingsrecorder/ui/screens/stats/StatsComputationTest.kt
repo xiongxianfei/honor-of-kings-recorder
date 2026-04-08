@@ -28,10 +28,11 @@ class StatsComputationTest {
         timestamp: Long = System.currentTimeMillis()
     ) = Match(
         id = id, hero = hero, timestamp = timestamp, isWin = isWin,
-        economy = economy, deaths = deaths, killedBaron = killedBaron,
-        threeQuestionCheck = threeQuestionCheck, reliedOnTeam = reliedOnTeam,
-        pushedTower = pushedTower, engagedStrongest = engagedStrongest,
-        mentalStability = mentalStability, notes = notes, score = score
+        economy = economy, kills = 0, deaths = deaths, assists = 0,
+        killedBaron = killedBaron, threeQuestionCheck = threeQuestionCheck,
+        reliedOnTeam = reliedOnTeam, pushedTower = pushedTower,
+        engagedStrongest = engagedStrongest, mentalStability = mentalStability,
+        notes = notes, score = score
     )
 
     private fun computeStats(matches: List<Match>): StatsUiState {

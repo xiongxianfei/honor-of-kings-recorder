@@ -22,7 +22,9 @@ object AppModule {
             context,
             AppDatabase::class.java,
             "honor_kings_recorder.db"
-        ).build()
+        )
+            .addMigrations(AppDatabase.MIGRATION_1_2)
+            .build()
 
     @Provides
     @Singleton

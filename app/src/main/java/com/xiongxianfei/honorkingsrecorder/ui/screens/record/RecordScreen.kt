@@ -159,8 +159,26 @@ fun RecordScreen(vm: RecordViewModel = hiltViewModel()) {
             OutlinedTextField(
                 value = form.deathsText,
                 onValueChange = vm::onDeathsChange,
-                label = { Text("死亡次数") },
+                label = { Text("死亡") },
                 placeholder = { Text("≤2 得10分") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        // ── Kills & Assists ──────────────────────────────────────────────────
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            OutlinedTextField(
+                value = form.killsText,
+                onValueChange = vm::onKillsChange,
+                label = { Text("击杀") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.weight(1f)
+            )
+            OutlinedTextField(
+                value = form.assistsText,
+                onValueChange = vm::onAssistsChange,
+                label = { Text("助攻") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.weight(1f)
             )

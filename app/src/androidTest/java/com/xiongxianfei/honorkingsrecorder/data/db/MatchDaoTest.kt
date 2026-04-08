@@ -43,7 +43,7 @@ class MatchDaoTest {
         score: Int = 50
     ) = Match(
         id = id, hero = hero, timestamp = timestamp, isWin = isWin,
-        economy = 5000, deaths = 2, killedBaron = false,
+        economy = 5000, kills = 0, deaths = 2, assists = 0, killedBaron = false,
         threeQuestionCheck = false, reliedOnTeam = false, pushedTower = false,
         engagedStrongest = false, mentalStability = false, notes = "", score = score
     )
@@ -133,7 +133,7 @@ class MatchDaoTest {
     fun insert_allFields_persistedCorrectly() = runTest {
         val original = Match(
             id = 0, hero = "莱西奥", timestamp = 1_700_000_000_000L,
-            isWin = true, economy = 8500, deaths = 1,
+            isWin = true, economy = 8500, kills = 11, deaths = 1, assists = 5,
             killedBaron = true, threeQuestionCheck = true,
             reliedOnTeam = false, pushedTower = true,
             engagedStrongest = true, mentalStability = true,
@@ -146,7 +146,9 @@ class MatchDaoTest {
         assertEquals(1_700_000_000_000L, retrieved.timestamp)
         assertTrue(retrieved.isWin)
         assertEquals(8500, retrieved.economy)
-        assertEquals(1, retrieved.deaths)
+        assertEquals(11, retrieved.kills)
+        assertEquals(1,  retrieved.deaths)
+        assertEquals(5,  retrieved.assists)
         assertTrue(retrieved.killedBaron)
         assertTrue(retrieved.threeQuestionCheck)
         assertFalse(retrieved.reliedOnTeam)

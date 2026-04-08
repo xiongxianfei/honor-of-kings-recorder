@@ -8,11 +8,12 @@ import com.xiongxianfei.honorkingsrecorder.ui.screens.record.HEROES
  *
  * Observed screenshot layout (数据 tab):
  *   - "胜利" / "失败" near the top
- *   - KDA shown as "11/1/5" (kills/deaths/assists) — deaths is the middle number
- *   - Economy shown as "经济: 13.1k" — value in thousands with 'k' suffix
- *   - Hero name may or may not appear as plain text
+ *   - KDA shown as "11/1/5" (kills/deaths/assists) — may have spaces around slashes
+ *   - Economy shown as "经济: 13.1k" — value in thousands with 'k' suffix;
+ *     OCR may produce "13. 1k" or "13.1 k" with extra spaces
+ *   - Hero name may or may not appear as plain text in this tab
  *
- * Designed as a pure function with no Android dependencies for easy unit testing.
+ * Pure function with no Android dependencies for easy unit testing.
  */
 object ScreenshotParser {
 
@@ -20,14 +21,18 @@ object ScreenshotParser {
         val hero: String? = null,
         val isWin: Boolean? = null,
         val economy: Int? = null,
-        val deaths: Int? = null
+        val kills: Int? = null,
+        val deaths: Int? = null,
+        val assists: Int? = null,
     )
 
     fun parse(ocrText: String): ParsedMatch {
         var hero: String? = null
         var isWin: Boolean? = null
         var economy: Int? = null
+        var kills: Int? = null
         var deaths: Int? = null
+        var assists: Int? = null
 
         // ── Win / Loss ──────────────────────────────────────────────────────
         when {
@@ -36,19 +41,21 @@ object ScreenshotParser {
         }
 
         // ── Hero name ────────────────────────────────────────────────────────
-        // Hero names appear as plain text if the game lobby / result header shows them.
-        // In the 数据 tab the hero icon is graphical only, so this may be null.
         hero = HEROES.firstOrNull { ocrText.contains(it) }
 
         // ── Economy ──────────────────────────────────────────────────────────
-        // Primary: "经济: 13.1k"  or  "经济：8.5k"  or  "经济: 9000"
-        // The value uses a 'k' suffix meaning ×1000 in HoK's stats screen.
-        val econKRegex = Regex("""经济\s*[:\uff1a]\s*([0-9]+\.?[0-9]*)\s*[kK]""")
+        // Primary: "经济: 13.1k" — OCR may produce spaces within the number or
+        // before 'k', so allow \s* between digits, decimal point, and k-suffix.
+        val econKRegex = Regex(
+            """经济\s*[:\uff1a]?\s*([0-9]+\s*\.?\s*[0-9]*)\s*[kK]"""
+        )
         econKRegex.find(ocrText)?.let {
-            economy = it.groupValues[1].toDoubleOrNull()?.times(1000)?.toInt()
+            // Strip any spaces OCR inserted inside the number before parsing
+            val raw = it.groupValues[1].replace(Regex("""\s"""), "")
+            economy = raw.toDoubleOrNull()?.times(1000)?.toInt()
         }
 
-        // Secondary: plain integer after label (e.g. "经济:9300" without k)
+        // Secondary: plain 4-6 digit integer after the label (no k suffix)
         if (economy == null) {
             val econPlainRegex = Regex("""经济\s*[:\uff1a]?\s*\n?\s*([0-9]{4,6})""")
             econPlainRegex.find(ocrText)?.let {
@@ -56,7 +63,7 @@ object ScreenshotParser {
             }
         }
 
-        // Tertiary: large isolated integer in plausible range [3000, 25000]
+        // Tertiary: any isolated large integer in plausible range [3000, 25000]
         if (economy == null) {
             Regex("""(?<![0-9.])([3-9][0-9]{3}|[1-2][0-9]{4})(?![0-9k])""")
                 .findAll(ocrText).firstOrNull()?.let {
@@ -64,22 +71,27 @@ object ScreenshotParser {
                 }
         }
 
-        // ── Deaths ───────────────────────────────────────────────────────────
-        // Primary: KDA format "kills/deaths/assists" — deaths is the middle number.
-        // This is the main format in the HoK result 数据 tab (e.g. "11/1/5").
-        val kdaRegex = Regex("""([0-9]{1,2})/([0-9]{1,2})/([0-9]{1,2})""")
+        // ── KDA (kills / deaths / assists) ────────────────────────────────────
+        // Allow optional whitespace around each slash — OCR sometimes adds spaces.
+        val kdaRegex = Regex(
+            """([0-9]{1,2})\s*/\s*([0-9]{1,2})\s*/\s*([0-9]{1,2})"""
+        )
         kdaRegex.find(ocrText)?.let {
-            deaths = it.groupValues[2].toIntOrNull()
+            kills   = it.groupValues[1].toIntOrNull()
+            deaths  = it.groupValues[2].toIntOrNull()
+            assists = it.groupValues[3].toIntOrNull()
         }
 
-        // Secondary: explicit "死亡" label (appears on some older or different screens)
+        // Deaths fallback: explicit "死亡" label (some screen variants)
         if (deaths == null) {
-            val deathsLabelRegex = Regex("""死亡(?:次数)?\s*[:\uff1a]?\s*\n?\s*([0-9]{1,2})""")
+            val deathsLabelRegex = Regex(
+                """死亡(?:次数)?\s*[:\uff1a]?\s*\n?\s*([0-9]{1,2})"""
+            )
             deathsLabelRegex.find(ocrText)?.let {
                 deaths = it.groupValues[1].toIntOrNull()
             }
         }
 
-        return ParsedMatch(hero, isWin, economy, deaths)
+        return ParsedMatch(hero, isWin, economy, kills, deaths, assists)
     }
 }

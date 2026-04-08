@@ -136,6 +136,14 @@ private fun MatchHistoryCard(match: Match) {
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                // Show KDA when kills or assists were recorded
+                if (match.kills > 0 || match.deaths > 0 || match.assists > 0) {
+                    Text(
+                        "KDA: ${match.kills}/${match.deaths}/${match.assists}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
                 if (match.notes.isNotBlank()) {
                     Text(
                         match.notes,

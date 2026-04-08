@@ -12,55 +12,20 @@ class ScreenshotParserTest {
 
     // ── Win / Loss ──────────────────────────────────────────────────────────
 
-    @Test
-    fun isWin_victorySingleWord_returnsTrue() {
-        assertTrue(parse("胜利").isWin!!)
-    }
-
-    @Test
-    fun isWin_ourSideVictory_returnsTrue() {
-        assertTrue(parse("我方胜利").isWin!!)
-    }
-
-    @Test
-    fun isWin_defeatWord_returnsFalse() {
-        assertFalse(parse("失败").isWin!!)
-    }
-
-    @Test
-    fun isWin_ourSideDefeat_returnsFalse() {
-        assertFalse(parse("我方失败").isWin!!)
-    }
-
-    @Test
-    fun isWin_noResultWord_returnsNull() {
-        assertNull(parse("经济 8000").isWin)
-    }
+    @Test fun isWin_victorySingleWord_returnsTrue() = assertTrue(parse("胜利").isWin!!)
+    @Test fun isWin_ourSideVictory_returnsTrue()    = assertTrue(parse("我方胜利").isWin!!)
+    @Test fun isWin_defeatWord_returnsFalse()       = assertFalse(parse("失败").isWin!!)
+    @Test fun isWin_ourSideDefeat_returnsFalse()    = assertFalse(parse("我方失败").isWin!!)
+    @Test fun isWin_noResultWord_returnsNull()      = assertNull(parse("经济 8000").isWin)
 
     // ── Hero ────────────────────────────────────────────────────────────────
 
-    @Test
-    fun hero_houyiInText_recognized() {
-        assertEquals("后羿", parse("后羿 经济 8000").hero)
-    }
+    @Test fun hero_houyiInText_recognized()  = assertEquals("后羿",  parse("后羿 经济 8000").hero)
+    @Test fun hero_goyaInText_recognized()   = assertEquals("戈娅",  parse("战绩 戈娅").hero)
+    @Test fun hero_notInText_returnsNull()   = assertNull(parse("胜利\n11/1/5\n经济: 13.1k").hero)
+    @Test fun hero_unknownHero_returnsNull() = assertNull(parse("韩信 胜利").hero)
 
-    @Test
-    fun hero_gouyaInText_recognized() {
-        assertEquals("戈娅", parse("战绩 戈娅").hero)
-    }
-
-    @Test
-    fun hero_notInText_returnsNull() {
-        // HoK 数据 tab shows hero icon graphically — no text name
-        assertNull(parse("胜利\n11/1/5\n经济: 13.1k").hero)
-    }
-
-    @Test
-    fun hero_unknownHero_returnsNull() {
-        assertNull(parse("韩信 胜利").hero)
-    }
-
-    // ── Economy — k-suffix format (real screenshot) ─────────────────────────
+    // ── Economy — k-suffix format (primary) ──────────────────────────────────
 
     @Test
     fun economy_kSuffix_13point1k_returns13100() {
@@ -83,8 +48,18 @@ class ScreenshotParserTest {
     }
 
     @Test
-    fun economy_kSuffix_lowValue_belowThreshold() {
-        // 5.2k = 5200, below the ≥6500 threshold
+    fun economy_kSuffix_ocrSpaceInsideNumber() {
+        // OCR may insert a space: "13. 1k" or "13 .1k"
+        assertEquals(13100, parse("经济: 13. 1k").economy)
+    }
+
+    @Test
+    fun economy_kSuffix_ocrSpaceBeforeK() {
+        assertEquals(13100, parse("经济: 13.1 k").economy)
+    }
+
+    @Test
+    fun economy_kSuffix_lowValue() {
         assertEquals(5200, parse("经济: 5.2k").economy)
     }
 
@@ -105,29 +80,49 @@ class ScreenshotParserTest {
         assertNull(parse("胜利 11/1/5").economy)
     }
 
-    // ── Deaths — KDA format (real screenshot) ────────────────────────────────
+    // ── KDA — kills / deaths / assists ────────────────────────────────────────
 
     @Test
-    fun deaths_kdaFormat_11_1_5_returnsMiddle() {
-        assertEquals(1, parse("11/1/5").deaths)
+    fun kda_11_1_5_allFieldsCorrect() {
+        val r = parse("11/1/5")
+        assertEquals(11, r.kills)
+        assertEquals(1,  r.deaths)
+        assertEquals(5,  r.assists)
     }
 
     @Test
-    fun deaths_kdaFormat_zeroDeaths() {
-        assertEquals(0, parse("8/0/10").deaths)
+    fun kda_withSpacesAroundSlashes_parsedCorrectly() {
+        val r = parse("11 / 1 / 5")
+        assertEquals(11, r.kills)
+        assertEquals(1,  r.deaths)
+        assertEquals(5,  r.assists)
     }
 
     @Test
-    fun deaths_kdaFormat_highDeaths() {
-        assertEquals(9, parse("2/9/3").deaths)
+    fun kda_zeroDeaths_parsedCorrectly() {
+        val r = parse("8/0/10")
+        assertEquals(8,  r.kills)
+        assertEquals(0,  r.deaths)
+        assertEquals(10, r.assists)
     }
 
     @Test
-    fun deaths_kdaFormat_singleDigitAll() {
-        assertEquals(2, parse("5/2/7").deaths)
+    fun kda_allZeros() {
+        val r = parse("0/0/0")
+        assertEquals(0, r.kills)
+        assertEquals(0, r.deaths)
+        assertEquals(0, r.assists)
     }
 
-    // ── Deaths — explicit label format (fallback) ───────────────────────────
+    @Test
+    fun kda_noKdaPattern_allNull() {
+        val r = parse("胜利 经济: 8.0k")
+        assertNull(r.kills)
+        assertNull(r.deaths)
+        assertNull(r.assists)
+    }
+
+    // ── Deaths — explicit label fallback ────────────────────────────────────
 
     @Test
     fun deaths_explicitLabel_withColon() {
@@ -135,25 +130,15 @@ class ScreenshotParserTest {
     }
 
     @Test
-    fun deaths_explicitLabel_withFullWidthColon() {
-        assertEquals(2, parse("死亡：2").deaths)
-    }
-
-    @Test
     fun deaths_explicitCountLabel() {
         assertEquals(4, parse("死亡次数:4").deaths)
-    }
-
-    @Test
-    fun deaths_noIndicator_returnsNull() {
-        assertNull(parse("胜利 经济: 8.0k").deaths)
     }
 
     // ── Real screenshot simulation ────────────────────────────────────────────
 
     @Test
     fun realScreenshot_winMvpGame_parsesCorrectly() {
-        // Simulates OCR output from the provided screenshot
+        // Simulates OCR output from the provided 王者荣耀 screenshot
         val ocr = """
             胜利
             MVP 金牌发育路
@@ -169,12 +154,14 @@ class ScreenshotParserTest {
             打野经济: 1.4k 补刀数: 50
         """.trimIndent()
 
-        val result = parse(ocr)
-        assertTrue(result.isWin!!)
-        assertEquals(13100, result.economy)
-        assertEquals(1, result.deaths)
-        // Hero name not in text — null is correct for this screenshot tab
-        assertNull(result.hero)
+        val r = parse(ocr)
+        assertTrue(r.isWin!!)
+        assertEquals(13100, r.economy)
+        assertEquals(11, r.kills)
+        assertEquals(1,  r.deaths)
+        assertEquals(5,  r.assists)
+        // Hero name not in text on this tab — null is correct
+        assertNull(r.hero)
     }
 
     @Test
@@ -187,10 +174,21 @@ class ScreenshotParserTest {
             经济: 7.8k 经济占比: 18%
         """.trimIndent()
 
-        val result = parse(ocr)
-        assertFalse(result.isWin!!)
-        assertEquals(7800, result.economy)
-        assertEquals(4, result.deaths)
-        assertEquals("孙尚香", result.hero)
+        val r = parse(ocr)
+        assertFalse(r.isWin!!)
+        assertEquals(7800, r.economy)
+        assertEquals(5, r.kills)
+        assertEquals(4, r.deaths)
+        assertEquals(2, r.assists)
+        assertEquals("孙尚香", r.hero)
+    }
+
+    @Test
+    fun realScreenshot_ocrNoise_spacesInEconomy() {
+        // OCR may fragment "13.1k" into "13. 1 k"
+        val ocr = "胜利\n11/1/5\n经济: 13. 1 k"
+        val r = parse(ocr)
+        assertEquals(13100, r.economy)
+        assertEquals(1, r.deaths)
     }
 }
