@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
@@ -8,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.xiongxianfei.honorkingsrecorder"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.xiongxianfei.honorkingsrecorder"
@@ -33,9 +32,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
     }
     buildFeatures {
         compose = true
@@ -73,5 +69,16 @@ dependencies {
     ksp(libs.room.compiler)
 
     // Vico charts
+    implementation(libs.vico.compose)
     implementation(libs.vico.compose.m3)
+
+    // Unit tests
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+
+    // Instrumented tests
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.espresso.core)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
+    androidTestImplementation(libs.room.testing)
 }

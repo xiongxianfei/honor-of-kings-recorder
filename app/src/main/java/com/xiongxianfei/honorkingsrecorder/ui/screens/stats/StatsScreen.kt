@@ -13,23 +13,23 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStartAxis
+import com.patrykandpatrick.vico.compose.cartesian.axis.HorizontalAxis
+import com.patrykandpatrick.vico.compose.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberColumnCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
-import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
-import com.patrykandpatrick.vico.core.cartesian.data.columnSeries
-import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.LaunchedEffect
+import com.patrykandpatrick.vico.compose.cartesian.data.CartesianChartModelProducer
+import com.patrykandpatrick.vico.compose.cartesian.data.columnSeries
+import com.patrykandpatrick.vico.compose.cartesian.data.lineSeries
 
 @Composable
 fun StatsScreen(vm: StatsViewModel = hiltViewModel()) {
@@ -66,8 +66,8 @@ fun StatsScreen(vm: StatsViewModel = hiltViewModel()) {
             CartesianChartHost(
                 chart = rememberCartesianChart(
                     rememberLineCartesianLayer(),
-                    startAxis = rememberStartAxis(),
-                    bottomAxis = rememberBottomAxis()
+                    startAxis = VerticalAxis.rememberStart(),
+                    bottomAxis = HorizontalAxis.rememberBottom(),
                 ),
                 modelProducer = producer,
                 modifier = Modifier
@@ -89,8 +89,8 @@ fun StatsScreen(vm: StatsViewModel = hiltViewModel()) {
                 CartesianChartHost(
                     chart = rememberCartesianChart(
                         rememberColumnCartesianLayer(),
-                        startAxis = rememberStartAxis(),
-                        bottomAxis = rememberBottomAxis()
+                        startAxis = VerticalAxis.rememberStart(),
+                        bottomAxis = HorizontalAxis.rememberBottom(),
                     ),
                     modelProducer = producer,
                     modifier = Modifier
@@ -111,8 +111,8 @@ fun StatsScreen(vm: StatsViewModel = hiltViewModel()) {
             CartesianChartHost(
                 chart = rememberCartesianChart(
                     rememberColumnCartesianLayer(),
-                    startAxis = rememberStartAxis(),
-                    bottomAxis = rememberBottomAxis()
+                    startAxis = VerticalAxis.rememberStart(),
+                    bottomAxis = HorizontalAxis.rememberBottom(),
                 ),
                 modelProducer = producer,
                 modifier = Modifier
@@ -133,8 +133,8 @@ fun StatsScreen(vm: StatsViewModel = hiltViewModel()) {
             CartesianChartHost(
                 chart = rememberCartesianChart(
                     rememberColumnCartesianLayer(),
-                    startAxis = rememberStartAxis(),
-                    bottomAxis = rememberBottomAxis()
+                    startAxis = VerticalAxis.rememberStart(),
+                    bottomAxis = HorizontalAxis.rememberBottom(),
                 ),
                 modelProducer = producer,
                 modifier = Modifier
