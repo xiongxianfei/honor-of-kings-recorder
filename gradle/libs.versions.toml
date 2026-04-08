@@ -15,6 +15,7 @@ junit = "4.13.2"
 junitExt = "1.2.1"
 espresso = "3.6.1"
 coroutines = "1.10.1"
+mlkitTextChinese = "16.0.1"
 
 [libraries]
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -49,6 +50,7 @@ androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "j
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
 room-testing = { group = "androidx.room", name = "room-testing", version.ref = "room" }
+mlkit-text-recognition-chinese = { group = "com.google.mlkit", name = "text-recognition-chinese", version.ref = "mlkitTextChinese" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

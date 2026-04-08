@@ -1,17 +1,30 @@
 package com.xiongxianfei.honorkingsrecorder.ui.screens.record
 
+import android.content.Context
+import android.graphics.BitmapFactory
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.chinese.ChineseTextRecognizerOptions
 import com.xiongxianfei.honorkingsrecorder.data.model.Match
 import com.xiongxianfei.honorkingsrecorder.data.repository.MatchRepository
 import com.xiongxianfei.honorkingsrecorder.util.ScoreCalculator
+import com.xiongxianfei.honorkingsrecorder.util.ScreenshotParser
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 val HEROES = listOf("后羿", "莱西奥", "艾琳", "戈娅", "孙尚香", "公孙离")
 
@@ -27,7 +40,9 @@ data class RecordFormState(
     val engagedStrongest: Boolean = false,
     val mentalStability: Boolean = false,
     val notes: String = "",
-    val saved: Boolean = false
+    val saved: Boolean = false,
+    val isParsingImage: Boolean = false,
+    val imageParseHint: String = ""
 ) {
     val economy: Int get() = economyText.toIntOrNull() ?: 0
     val deaths: Int get() = deathsText.toIntOrNull() ?: 0
@@ -39,6 +54,7 @@ data class RecordFormState(
 
 @HiltViewModel
 class RecordViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val repo: MatchRepository
 ) : ViewModel() {
 
@@ -82,4 +98,48 @@ class RecordViewModel @Inject constructor(
     }
 
     fun onSaveAcknowledged() = _form.update { it.copy(saved = false) }
+
+    /** Runs ML Kit Chinese OCR on [uri] and pre-fills matching form fields. */
+    fun importFromScreenshot(uri: Uri) {
+        viewModelScope.launch {
+            _form.update { it.copy(isParsingImage = true, imageParseHint = "") }
+            try {
+                val bitmap = withContext(Dispatchers.IO) {
+                    context.contentResolver.openInputStream(uri)?.use {
+                        BitmapFactory.decodeStream(it)
+                    }
+                }
+                if (bitmap == null) {
+                    _form.update { it.copy(isParsingImage = false, imageParseHint = "无法读取图片") }
+                    return@launch
+                }
+
+                val image = InputImage.fromBitmap(bitmap, 0)
+                val recognizer = TextRecognition.getClient(ChineseTextRecognizerOptions.Builder().build())
+
+                val visionText = suspendCancellableCoroutine { cont ->
+                    recognizer.process(image)
+                        .addOnSuccessListener { cont.resume(it) }
+                        .addOnFailureListener { cont.resumeWithException(it) }
+                }
+
+                val parsed = ScreenshotParser.parse(visionText.text)
+                val hints = mutableListOf<String>()
+
+                _form.update { f ->
+                    var updated = f.copy(isParsingImage = false)
+                    parsed.hero?.let    { updated = updated.copy(hero = it);                   hints += it }
+                    parsed.isWin?.let   { updated = updated.copy(isWin = it);                  hints += if (it) "胜利" else "失败" }
+                    parsed.economy?.let { updated = updated.copy(economyText = it.toString()); hints += "经济$it" }
+                    parsed.deaths?.let  { updated = updated.copy(deathsText  = it.toString()); hints += "死亡$it" }
+                    updated.copy(
+                        imageParseHint = if (hints.isEmpty()) "未识别到数据，请手动填写"
+                                         else "已识别：${hints.joinToString(" · ")}"
+                    )
+                }
+            } catch (e: Exception) {
+                _form.update { it.copy(isParsingImage = false, imageParseHint = "识别失败：${e.message}") }
+            }
+        }
+    }
 }

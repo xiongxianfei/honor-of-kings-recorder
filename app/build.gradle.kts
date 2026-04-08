@@ -72,6 +72,9 @@ dependencies {
     implementation(libs.vico.compose)
     implementation(libs.vico.compose.m3)
 
+    // ML Kit — on-device Chinese OCR for screenshot import
+    implementation(libs.mlkit.text.recognition.chinese)
+
     // Unit tests
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
