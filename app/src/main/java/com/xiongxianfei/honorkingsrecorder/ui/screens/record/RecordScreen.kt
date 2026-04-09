@@ -48,7 +48,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecordScreen(vm: RecordViewModel = hiltViewModel()) {
+fun RecordScreen(
+    onSaved: (() -> Unit)? = null,
+    vm: RecordViewModel = hiltViewModel()
+) {
     val form by vm.form.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -58,8 +61,12 @@ fun RecordScreen(vm: RecordViewModel = hiltViewModel()) {
 
     LaunchedEffect(form.saved) {
         if (form.saved) {
-            snackbarHostState.showSnackbar("记录已保存！")
-            vm.onSaveAcknowledged()
+            if (onSaved != null) {
+                onSaved()
+            } else {
+                snackbarHostState.showSnackbar("记录已保存！")
+                vm.onSaveAcknowledged()
+            }
         }
     }
 
@@ -70,34 +77,39 @@ fun RecordScreen(vm: RecordViewModel = hiltViewModel()) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text("记录对局", style = MaterialTheme.typography.headlineMedium)
+        Text(
+            if (vm.isEditMode) "编辑对局" else "记录对局",
+            style = MaterialTheme.typography.headlineMedium
+        )
 
-        // ── Screenshot import ────────────────────────────────────────────────
-        OutlinedButton(
-            onClick = { pickImage.launch("image/*") },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !form.isParsingImage
-        ) {
-            if (form.isParsingImage) {
-                CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                Spacer(Modifier.size(8.dp))
-                Text("正在识别截图…")
-            } else {
-                Icon(Icons.Default.AddPhotoAlternate, contentDescription = null)
-                Spacer(Modifier.size(8.dp))
-                Text("从截图导入")
+        // ── Screenshot import (hidden in edit mode) ──────────────────────────
+        if (!vm.isEditMode) {
+            OutlinedButton(
+                onClick = { pickImage.launch("image/*") },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !form.isParsingImage
+            ) {
+                if (form.isParsingImage) {
+                    CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                    Spacer(Modifier.size(8.dp))
+                    Text("正在识别截图…")
+                } else {
+                    Icon(Icons.Default.AddPhotoAlternate, contentDescription = null)
+                    Spacer(Modifier.size(8.dp))
+                    Text("从截图导入")
+                }
             }
-        }
 
-        if (form.imageParseHint.isNotEmpty()) {
-            Text(
-                text = form.imageParseHint,
-                style = MaterialTheme.typography.bodySmall,
-                color = if (form.imageParseHint.startsWith("已识别"))
-                    MaterialTheme.colorScheme.primary
-                else
-                    MaterialTheme.colorScheme.error
-            )
+            if (form.imageParseHint.isNotEmpty()) {
+                Text(
+                    text = form.imageParseHint,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (form.imageParseHint.startsWith("已识别"))
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.error
+                )
+            }
         }
 
         // ── Hero dropdown ────────────────────────────────────────────────────
@@ -228,7 +240,7 @@ fun RecordScreen(vm: RecordViewModel = hiltViewModel()) {
             onClick = vm::save,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("保存记录")
+            Text(if (vm.isEditMode) "保存修改" else "保存记录")
         }
 
         Spacer(Modifier.height(8.dp))

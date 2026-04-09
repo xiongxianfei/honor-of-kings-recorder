@@ -12,6 +12,8 @@ class MatchRepository @Inject constructor(
 ) {
     val allMatches: Flow<List<Match>> = dao.getAll()
 
+    suspend fun getById(id: Long): Match? = dao.getById(id)
+
     suspend fun insert(match: Match) = dao.insert(match)
 
     suspend fun delete(match: Match) = dao.delete(match)

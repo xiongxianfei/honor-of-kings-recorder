@@ -40,7 +40,10 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun HistoryScreen(vm: HistoryViewModel = hiltViewModel()) {
+fun HistoryScreen(
+    onMatchClick: (Long) -> Unit = {},
+    vm: HistoryViewModel = hiltViewModel()
+) {
     val matches by vm.matches.collectAsStateWithLifecycle(initialValue = emptyList())
 
     Column(
@@ -65,7 +68,11 @@ fun HistoryScreen(vm: HistoryViewModel = hiltViewModel()) {
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(items = matches, key = { it.id }) { match ->
-                    SwipeToDismissMatchItem(match = match, onDelete = { vm.delete(match) })
+                    SwipeToDismissMatchItem(
+                        match = match,
+                        onDelete = { vm.delete(match) },
+                        onClick = { onMatchClick(match.id) }
+                    )
                 }
             }
         }
@@ -74,7 +81,7 @@ fun HistoryScreen(vm: HistoryViewModel = hiltViewModel()) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SwipeToDismissMatchItem(match: Match, onDelete: () -> Unit) {
+private fun SwipeToDismissMatchItem(match: Match, onDelete: () -> Unit, onClick: () -> Unit) {
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
             if (value == SwipeToDismissBoxValue.EndToStart) {
@@ -112,16 +119,17 @@ private fun SwipeToDismissMatchItem(match: Match, onDelete: () -> Unit) {
             }
         }
     ) {
-        MatchHistoryCard(match)
+        MatchHistoryCard(match, onClick)
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun MatchHistoryCard(match: Match) {
+private fun MatchHistoryCard(match: Match, onClick: () -> Unit) {
     val dateStr = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
         .format(Date(match.timestamp))
 
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

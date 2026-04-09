@@ -15,6 +15,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.xiongxianfei.honorkingsrecorder.ui.screens.detail.MatchDetailScreen
 import com.xiongxianfei.honorkingsrecorder.ui.screens.history.HistoryScreen
 import com.xiongxianfei.honorkingsrecorder.ui.screens.home.HomeScreen
 import com.xiongxianfei.honorkingsrecorder.ui.screens.record.RecordScreen
@@ -54,11 +57,29 @@ fun AppNavHost() {
             startDestination = Screen.Home.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(Screen.Home.route) { HomeScreen() }
+            val onMatchClick: (Long) -> Unit = { id ->
+                navController.navigate("match_detail/$id")
+            }
+            composable(Screen.Home.route) { HomeScreen(onMatchClick = onMatchClick) }
             composable(Screen.Record.route) { RecordScreen() }
-            composable(Screen.History.route) { HistoryScreen() }
+            composable(Screen.History.route) { HistoryScreen(onMatchClick = onMatchClick) }
             composable(Screen.Stats.route) { StatsScreen() }
             composable(Screen.Review.route) { VideoReviewScreen() }
+            composable(
+                Screen.MatchDetail.route,
+                arguments = listOf(navArgument("matchId") { type = NavType.LongType })
+            ) {
+                MatchDetailScreen(
+                    onBack = { navController.popBackStack() },
+                    onEdit = { id -> navController.navigate("record/$id") }
+                )
+            }
+            composable(
+                Screen.EditMatch.route,
+                arguments = listOf(navArgument("matchId") { type = NavType.LongType })
+            ) {
+                RecordScreen(onSaved = { navController.popBackStack() })
+            }
         }
     }
 }
