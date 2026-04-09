@@ -5,6 +5,7 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.ui.graphics.vector.ImageVector
 
@@ -18,6 +19,7 @@ sealed class Screen(
     data object History : Screen("history", "历史", Icons.Filled.History)
     data object Stats : Screen("stats", "统计", Icons.Filled.BarChart)
     data object Review : Screen("review", "复盘", Icons.Filled.VideoLibrary)
+    data object MatchDetail : Screen("match_detail/{matchId}", "详情", Icons.Filled.Info)
 
     companion object {
         val bottomNavItems = listOf(Home, Record, History, Stats, Review)

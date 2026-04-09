@@ -85,13 +85,20 @@ class VideoReviewViewModel @Inject constructor(
                     val recognizer = TextRecognition.getClient(
                         ChineseTextRecognizerOptions.Builder().build()
                     )
-                    val visionText = suspendCancellableCoroutine { cont ->
-                        recognizer.process(image)
-                            .addOnSuccessListener { cont.resume(it) }
-                            .addOnFailureListener { cont.resumeWithException(it) }
+                    var ocrText = ""
+                    try {
+                        val visionText = suspendCancellableCoroutine<com.google.mlkit.vision.text.Text?> { cont ->
+                            cont.invokeOnCancellation { recognizer.close() }
+                            recognizer.process(image)
+                                .addOnSuccessListener { cont.resume(it) }
+                                .addOnFailureListener { cont.resumeWithException(it) }
+                        }
+                        ocrText = visionText?.text ?: ""
+                    } finally {
+                        recognizer.close()
                     }
 
-                    val parsed = ScreenshotParser.parse(visionText.text)
+                    val parsed = ScreenshotParser.parse(ocrText)
                     frames += FrameData(
                         timestampMs = timestampMs,
                         economy  = parsed.economy,

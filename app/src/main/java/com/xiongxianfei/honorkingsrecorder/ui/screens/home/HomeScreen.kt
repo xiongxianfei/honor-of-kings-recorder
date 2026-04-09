@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
@@ -32,7 +33,10 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun HomeScreen(vm: HomeViewModel = hiltViewModel()) {
+fun HomeScreen(
+    onMatchClick: (Long) -> Unit = {},
+    vm: HomeViewModel = hiltViewModel()
+) {
     val state by vm.uiState.collectAsStateWithLifecycle(initialValue = HomeUiState())
 
     LazyColumn(
@@ -62,7 +66,7 @@ fun HomeScreen(vm: HomeViewModel = hiltViewModel()) {
                 )
             }
             items(state.recentMatches) { match ->
-                MatchSummaryCard(match)
+                MatchSummaryCard(match, onClick = { onMatchClick(match.id) })
             }
         } else {
             item {
@@ -117,12 +121,13 @@ private fun StatCard(label: String, value: String, modifier: Modifier = Modifier
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun MatchSummaryCard(match: Match) {
+private fun MatchSummaryCard(match: Match, onClick: () -> Unit = {}) {
     val dateStr = SimpleDateFormat("MM-dd HH:mm", Locale.getDefault())
         .format(Date(match.timestamp))
 
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

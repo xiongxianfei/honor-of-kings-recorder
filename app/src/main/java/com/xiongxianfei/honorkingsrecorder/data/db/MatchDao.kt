@@ -17,6 +17,9 @@ interface MatchDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(match: Match)
 
+    @Query("SELECT * FROM matches WHERE id = :id")
+    suspend fun getById(id: Long): Match?
+
     @Delete
     suspend fun delete(match: Match)
 }
