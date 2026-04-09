@@ -8,11 +8,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.TrendingDown
+import androidx.compose.material.icons.filled.TrendingFlat
+import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
@@ -55,6 +62,13 @@ fun HomeScreen(
 
         item {
             StatsRow(state)
+        }
+
+        val wp = state.weeklyProgress
+        if (wp != null) {
+            item {
+                WeeklyProgressCard(wp)
+            }
         }
 
         if (state.recentMatches.isNotEmpty()) {
@@ -160,6 +174,119 @@ private fun MatchSummaryCard(match: Match, onClick: () -> Unit = {}) {
                     )
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun WeeklyProgressCard(progress: WeeklyProgress) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        )
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("本周进步", style = MaterialTheme.typography.titleMedium)
+                if (progress.matchCount < 3) {
+                    Text(
+                        "(本周仅${progress.matchCount}场)",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    progress.metrics.getOrNull(0)?.let {
+                        DeltaMetricItem(it, modifier = Modifier.weight(1f))
+                    }
+                    progress.metrics.getOrNull(1)?.let {
+                        DeltaMetricItem(it, modifier = Modifier.weight(1f))
+                    }
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    progress.metrics.getOrNull(2)?.let {
+                        DeltaMetricItem(it, modifier = Modifier.weight(1f))
+                    }
+                    progress.metrics.getOrNull(3)?.let {
+                        DeltaMetricItem(it, modifier = Modifier.weight(1f))
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(12.dp))
+            HorizontalDivider()
+            Spacer(Modifier.height(8.dp))
+
+            if (progress.allCriteriaStrong) {
+                Text(
+                    "本周表现均衡，继续保持！",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = WinGreen
+                )
+            } else if (progress.weakSpot != null) {
+                Text(
+                    "本周薄弱项：${progress.weakSpot.label} (${progress.weakSpot.hits}/${progress.weakSpot.total}场达标)",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = LossRed
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DeltaMetricItem(metric: DeltaMetric, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(metric.label, style = MaterialTheme.typography.labelSmall)
+            Text(
+                when (metric.label) {
+                    "胜率" -> "%.0f%%".format(metric.value)
+                    "均分" -> "%.1f".format(metric.value)
+                    else -> "%.0f".format(metric.value)
+                },
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
+        if (metric.delta != null) {
+            val improving = if (metric.lowerIsBetter) metric.delta < 0f else metric.delta > 0f
+            val flat = kotlin.math.abs(metric.delta) < 0.01f
+            val icon = when {
+                flat -> Icons.Filled.TrendingFlat
+                improving -> Icons.Filled.TrendingUp
+                else -> Icons.Filled.TrendingDown
+            }
+            val tint = when {
+                flat -> MaterialTheme.colorScheme.onSurfaceVariant
+                improving -> WinGreen
+                else -> LossRed
+            }
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = tint,
+                modifier = Modifier.size(20.dp)
+            )
         }
     }
 }
