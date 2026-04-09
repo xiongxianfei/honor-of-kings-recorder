@@ -3,6 +3,7 @@ package com.xiongxianfei.honorkingsrecorder.ui.screens.record
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.net.Uri
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.mlkit.vision.common.InputImage
@@ -59,11 +60,41 @@ data class RecordFormState(
 @HiltViewModel
 class RecordViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val repo: MatchRepository
+    private val repo: MatchRepository,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    private val editMatchId: Long? = savedStateHandle.get<Long>("matchId")
+    private var originalTimestamp: Long = System.currentTimeMillis()
+
+    val isEditMode: Boolean get() = editMatchId != null
 
     private val _form = MutableStateFlow(RecordFormState())
     val form: StateFlow<RecordFormState> = _form.asStateFlow()
+
+    init {
+        if (editMatchId != null) {
+            viewModelScope.launch {
+                val match = repo.getById(editMatchId) ?: return@launch
+                originalTimestamp = match.timestamp
+                _form.value = RecordFormState(
+                    hero = match.hero,
+                    isWin = match.isWin,
+                    economyText = if (match.economy == 0) "" else match.economy.toString(),
+                    killsText = if (match.kills == 0) "" else match.kills.toString(),
+                    deathsText = if (match.deaths == 0) "" else match.deaths.toString(),
+                    assistsText = if (match.assists == 0) "" else match.assists.toString(),
+                    killedBaron = match.killedBaron,
+                    threeQuestionCheck = match.threeQuestionCheck,
+                    reliedOnTeam = match.reliedOnTeam,
+                    pushedTower = match.pushedTower,
+                    engagedStrongest = match.engagedStrongest,
+                    mentalStability = match.mentalStability,
+                    notes = match.notes,
+                )
+            }
+        }
+    }
 
     fun onHeroChange(hero: String)       = _form.update { it.copy(hero = hero) }
     fun onWinChange(isWin: Boolean)      = _form.update { it.copy(isWin = isWin) }
@@ -84,8 +115,9 @@ class RecordViewModel @Inject constructor(
         viewModelScope.launch {
             repo.insert(
                 Match(
+                    id = editMatchId ?: 0,
                     hero = f.hero,
-                    timestamp = System.currentTimeMillis(),
+                    timestamp = if (editMatchId != null) originalTimestamp else System.currentTimeMillis(),
                     isWin = f.isWin,
                     economy = f.economy,
                     kills = f.kills,
@@ -101,7 +133,7 @@ class RecordViewModel @Inject constructor(
                     score = f.score
                 )
             )
-            _form.value = RecordFormState(saved = true)
+            _form.update { it.copy(saved = true) }
         }
     }
 

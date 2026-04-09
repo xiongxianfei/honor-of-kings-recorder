@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -45,6 +46,7 @@ import java.util.Locale
 @Composable
 fun MatchDetailScreen(
     onBack: () -> Unit,
+    onEdit: (Long) -> Unit = {},
     viewModel: MatchDetailViewModel = hiltViewModel()
 ) {
     val match by viewModel.match.collectAsStateWithLifecycle()
@@ -56,6 +58,11 @@ fun MatchDetailScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { onEdit(viewModel.matchId) }) {
+                        Icon(Icons.Filled.Edit, contentDescription = "编辑")
                     }
                 }
             )

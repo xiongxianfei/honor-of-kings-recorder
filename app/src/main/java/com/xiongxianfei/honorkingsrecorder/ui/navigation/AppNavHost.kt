@@ -69,7 +69,16 @@ fun AppNavHost() {
                 Screen.MatchDetail.route,
                 arguments = listOf(navArgument("matchId") { type = NavType.LongType })
             ) {
-                MatchDetailScreen(onBack = { navController.popBackStack() })
+                MatchDetailScreen(
+                    onBack = { navController.popBackStack() },
+                    onEdit = { id -> navController.navigate("record/$id") }
+                )
+            }
+            composable(
+                Screen.EditMatch.route,
+                arguments = listOf(navArgument("matchId") { type = NavType.LongType })
+            ) {
+                RecordScreen(onSaved = { navController.popBackStack() })
             }
         }
     }
